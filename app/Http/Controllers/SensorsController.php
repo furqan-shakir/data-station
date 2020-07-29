@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\CRC;
+use App\Http\Traits\IntHelper;
 use App\Sensor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SensorsController extends Controller
 {
-    use CRC;
+    use CRC, IntHelper;
     /**
      * Display a listing of the resource.
      *
@@ -47,7 +48,7 @@ class SensorsController extends Controller
             $payload = substr($decoded_data, 2, 45) . substr($decoded_data, 0, 2);
             if ($this->crc16Calc($payload) != 0) {
                 print "In valid data for index " . $index . "\xA";
-            } else { // valid data, accumlate it into a temporary file
+            } else { // valid data
                 $sensor = $this->initSensorObject($decoded_data);
                 $sensor->save();
             }
@@ -56,28 +57,28 @@ class SensorsController extends Controller
     }
     private function initSensorObject($binary_data){
         $sensor = new Sensor();
-        $sensor->sv = unpack('C', substr($binary_data, 4, 1))[1];
-        $sensor->hw_version = unpack('v', substr($binary_data, 5, 2))[1];
-        $sensor->fw_version = unpack('v', substr($binary_data, 7, 2))[1];
-        $sensor->device_status = unpack('C', substr($binary_data, 9, 1))[1];
-        $sensor->serial_number = unpack('V', substr($binary_data, 10, 4))[1];
-        $sensor->battery = unpack('v', substr($binary_data, 14, 2))[1];
-        $sensor->solar = unpack('v', substr($binary_data, 16, 2))[1];
-        $sensor->precipitation = unpack('v', substr($binary_data, 18, 2))[1];
-        $sensor->avg_air_temp = unpack('v', substr($binary_data, 20, 2))[1];
-        $sensor->min_air_temp = unpack('v', substr($binary_data, 22, 2))[1];
-        $sensor->max_air_temp = unpack('v', substr($binary_data, 24, 2))[1];
-        $sensor->avg_humidity = unpack('v', substr($binary_data, 26, 2))[1];
-        $sensor->min_humidity = unpack('v', substr($binary_data, 28, 2))[1];
-        $sensor->max_humidity = unpack('v', substr($binary_data, 30, 2))[1];
-        $sensor->avg_deltaT = unpack('s', substr($binary_data, 32, 2))[1];
-        $sensor->min_deltaT = unpack('s', substr($binary_data, 34, 2))[1];
-        $sensor->max_deltaT = unpack('s', substr($binary_data, 36, 2))[1];
-        $sensor->avg_dewpoint = unpack('s', substr($binary_data, 38, 2))[1];
-        $sensor->min_dewpoint = unpack('s', substr($binary_data, 40, 2))[1];
-        $sensor->avg_vpd = unpack('v', substr($binary_data, 42, 2))[1];
-        $sensor->min_vpd = unpack('v', substr($binary_data, 44, 2))[1];
-        $sensor->leaf_wetness = unpack('C', substr($binary_data, 46, 1))[1];
+        $sensor->sv = $this->uInt8(substr($binary_data, 4, 1));
+        $sensor->hw_version = $this->uInt16(substr($binary_data, 5, 2));
+        $sensor->fw_version = $this->uInt16(substr($binary_data, 7, 2));
+        $sensor->device_status = $this->uInt8(substr($binary_data, 9, 1));
+        $sensor->serial_number = $this->uInt32(substr($binary_data, 10, 4));
+        $sensor->battery = $this->uInt16(substr($binary_data, 14, 2));
+        $sensor->solar = $this->uInt16(substr($binary_data, 16, 2));
+        $sensor->precipitation = $this->uInt16(substr($binary_data, 18, 2));
+        $sensor->avg_air_temp = $this->int16( substr($binary_data, 20, 2));
+        $sensor->min_air_temp = $this->int16( substr($binary_data, 22, 2));
+        $sensor->max_air_temp = $this->int16( substr($binary_data, 24, 2));
+        $sensor->avg_humidity = $this->uInt16( substr($binary_data, 26, 2));
+        $sensor->min_humidity = $this->uInt16( substr($binary_data, 28, 2));
+        $sensor->max_humidity = $this->uInt16( substr($binary_data, 30, 2));
+        $sensor->avg_deltaT = $this->int16( substr($binary_data, 32, 2));
+        $sensor->min_deltaT = $this->int16( substr($binary_data, 34, 2));
+        $sensor->max_deltaT = $this->int16( substr($binary_data, 36, 2));
+        $sensor->avg_dewpoint = $this->int16( substr($binary_data, 38, 2));
+        $sensor->min_dewpoint = $this->int16( substr($binary_data, 40, 2));
+        $sensor->avg_vpd = $this->uInt16( substr($binary_data, 42, 2));
+        $sensor->min_vpd = $this->uInt16( substr($binary_data, 44, 2));
+        $sensor->leaf_wetness = $this->uInt8(substr($binary_data, 46, 1));
         return $sensor;
     }
     
